@@ -8,7 +8,6 @@ def main() -> None:
     trainer = AdapterTrainer()
 
     output_dir = trainer.train_from_data_file(
-        data_file="data/FinTech-PII_MD/synthetic_moldova_pii_data.json",
         domain="financial",
         publish_to_hub=True,
         versioning_enabled=True,

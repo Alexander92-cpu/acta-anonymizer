@@ -1,10 +1,12 @@
 """Simple inference script for Romanian NER model."""
 
+from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
 from peft import PeftModel
 from transformers import (
+    AutoConfig,
     AutoModelForTokenClassification,
     AutoTokenizer,
     Pipeline,
@@ -117,6 +119,17 @@ class RomanianNERInference:
                         )
             else:
                 raise e
+
+        config_model_path = hf_hub_download(
+            repo_id=adapter_model_name,
+            filename="config.json",
+            cache_dir="./models/cache",
+        )
+        loaded_config = AutoConfig.from_pretrained(Path(config_model_path).parent)
+
+        model.config.id2label = loaded_config.id2label
+        model.config.label2id = loaded_config.label2id
+        model.config.num_labels = len(loaded_config.id2label)
 
         self.pipe: Pipeline = pipeline(
             "token-classification",

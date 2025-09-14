@@ -38,16 +38,14 @@ class DataLoader:
         self, tokens: List[str], label_ids: List[int]
     ) -> Dict[str, List[Any]]:
         """Tokenize and align labels when label IDs are already provided."""
-        # Reconstruct text from tokens
-        text = " ".join(tokens)
-
         # Tokenize with the model's tokenizer
         tokenized = self.tokenizer(
-            text,
+            tokens,
             truncation=True,
             max_length=self._max_length,
             padding=False,
             return_offsets_mapping=True,
+            is_split_into_words=True,
             return_overflowing_tokens=False,
         )
 

@@ -1,6 +1,8 @@
 """Clean, production-ready adapter training."""
 
+import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import numpy.typing as npt
@@ -65,7 +67,6 @@ class AdapterTrainer:
 
     def train_from_data_file(
         self,
-        data_file: str,
         domain: str = "financial",
         publish_to_hub: bool = False,
         version: Optional[str] = None,
@@ -77,7 +78,7 @@ class AdapterTrainer:
         training_config, data_config = self.config_manager.load_training_config()
 
         # Load and split data
-        data_loader: DataLoader = DataLoader(data_file)
+        data_loader: DataLoader = DataLoader(data_config.train_file)
         train_dataset, val_dataset, test_dataset = data_loader.load_and_split(
             validation_split=data_config.validation_split,
             test_split=data_config.test_split,
@@ -117,11 +118,11 @@ class AdapterTrainer:
 
         # Setup PEFT
         lora_config: LoraConfig = self._create_lora_config(domain)
-        model: PeftModel = get_peft_model(self._model, lora_config)
+        peft_model: PeftModel = get_peft_model(self._model, lora_config)
 
         # Verify classifier layer is trainable
         classifier_trainable = False
-        for name, param in model.named_parameters():
+        for name, param in peft_model.named_parameters():
             if "classifier" in name and param.requires_grad:
                 classifier_trainable = True
                 print(f"✓ Classifier parameter '{name}' is trainable")
@@ -131,8 +132,12 @@ class AdapterTrainer:
                 "Classifier layer is not trainable! Check modules_to_save configuration."
             )
 
-        print(f"✓ PEFT model created with {model.num_parameters()} total parameters")
-        print(f"✓ Trainable parameters: {model.num_parameters(only_trainable=True)}")
+        print(
+            f"✓ PEFT model created with {peft_model.num_parameters()} total parameters"
+        )
+        print(
+            f"✓ Trainable parameters: {peft_model.num_parameters(only_trainable=True)}"
+        )
         print(f"✓ Classifier layer with {data_loader.num_labels} labels is trainable")
 
         # Generate unique output directory
@@ -176,7 +181,7 @@ class AdapterTrainer:
 
         # Trainer
         trainer = Trainer(
-            model=model,
+            model=peft_model,
             args=training_args,
             train_dataset=train_dataset,
             eval_dataset=val_dataset,
@@ -187,7 +192,21 @@ class AdapterTrainer:
 
         # Train
         trainer.train()
-        trainer.save_model(output_dir)
+        peft_model.save_pretrained(output_dir)
+
+        config_dict = peft_model.config.to_dict()
+
+        # Ensure label mappings are included
+        # config_dict.update({
+        #     "num_labels": data_loader.num_labels,
+        #     "id2label": data_loader.id_to_label,
+        #     "label2id": data_loader.label_to_id,
+        # })
+
+        config_path = Path(output_dir) / "config.json"
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config_dict, f, indent=2, ensure_ascii=False)
+        print(f"✓ Saved complete config with {len(data_loader.id_to_label)} labels")
 
         test_results = trainer.evaluate(test_dataset)
         print("Test Results:")
