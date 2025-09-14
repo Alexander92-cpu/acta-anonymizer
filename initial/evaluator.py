@@ -101,7 +101,6 @@ def load_dataset(path: str, limit: int | None = None) -> List[Dict[str, Any]]:
             break
     return examples
 
-
 class Evaluator:
     def __init__(self, client: Any, ignore_labels: bool = False):
         self.client = client
@@ -111,6 +110,13 @@ class Evaluator:
         if self.ignore_labels:
             return {(s["start"], s["end"]) for s in spans}
         return {(s["start"], s["end"], s["label"]) for s in spans}
+
+    def get_anonymized_str(self, example: Dict[str, Any]) -> str:
+        text = example["text"]
+
+        anon_text, metadata = self.client.anonymize(text)
+
+        return anon_text
 
     def evaluate(self, examples: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Evaluate micro P/R/F1 and deanonymization fidelity.
@@ -130,10 +136,13 @@ class Evaluator:
 
             # Predicted spans expected in metadata["entities"]
             pred_spans = metadata.get("entities", []) if isinstance(metadata, dict) else []
+            # print("pred_spans", pred_spans)
 
             # Deanonymization check
             try:
                 deanon = self.client.deanonymize(anon_text, metadata)
+                # print("deanon", deanon)
+
                 if deanon == text:
                     deanonym_ok += 1
             except Exception:

@@ -6,10 +6,9 @@ model = GLiNER.from_pretrained("urchade/gliner_multi_pii-v1")
 model.save_pretrained("gliner")
 
 # examples = load_dataset("data/mock_subset_200.json", limit=200)
-examples = load_dataset("data/synthetic_moldova_pii_data.json", limit=1000)
+examples = load_dataset("data/synthetic_moldova_pii_data.json", limit=500)
 
-client = AnonymizerGLiNER(model_path="gliner")
-
+client = AnonymizerGLiNER(model_path="gliner", device="cuda")
 
 evaluator = Evaluator(client, ignore_labels=True)
 metrics = evaluator.evaluate(examples)
