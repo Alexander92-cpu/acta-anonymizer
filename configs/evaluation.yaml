@@ -1,0 +1,4 @@
+evaluation:
+  inference_config_path: "configs/inference.yaml"
+  data_path: "data/FinTech-PII_MD/mock_subset_200.json"
+  output_path: "data/outputs/eval_results.json"

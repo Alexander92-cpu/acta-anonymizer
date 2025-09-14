@@ -2,6 +2,12 @@
 
 from pathlib import Path
 from typing import Any, Dict, List
+import json
+
+import os
+
+from huggingface_hub import hf_hub_download
+from safetensors import safe_open
 
 import yaml
 from peft import PeftModel
@@ -31,94 +37,47 @@ class RomanianNERInference:
 
         tokenizer = AutoTokenizer.from_pretrained(base_model_name)
 
-        try:
-            # Try to load with PEFT adapter
-            model = AutoModelForTokenClassification.from_pretrained(base_model_name)
-            model = PeftModel.from_pretrained(model, adapter_model_name)
-        except RuntimeError as e:
-            if "size mismatch" in str(e):
-                print(
-                    "Size mismatch detected. Loading base model with correct config..."
+        model = AutoModelForTokenClassification.from_pretrained(base_model_name)
+
+        adapter_model_path = hf_hub_download(
+            repo_id=adapter_model_name,
+            filename="adapter_model.safetensors",
+            cache_dir="./models/cache",
+        )
+        print(f"Downloaded from HuggingFace Hub: {adapter_model_name}")
+
+        with safe_open(adapter_model_path, framework="pt", device="cpu") as f:
+            # Find classifier weights to determine number of labels
+            classifier_key = None
+            for key in f.keys():
+                if "classifier" in key and "weight" in key:
+                    classifier_key = key
+                    break
+
+            if classifier_key:
+                classifier_weight = f.get_tensor(classifier_key)
+                num_labels = classifier_weight.shape[0]
+
+                # Update model config and resize classifier
+                model.config.num_labels = num_labels
+                import torch.nn as nn
+
+                model.classifier = nn.Linear(
+                    model.classifier.in_features, num_labels
                 )
-                # Load base model but modify config for correct number of labels
-                model = AutoModelForTokenClassification.from_pretrained(base_model_name)
 
-                # Get the saved classifier state from the adapter
-                import os
+                # Load the saved classifier weights
+                classifier_bias_key = classifier_key.replace("weight", "bias")
+                if classifier_bias_key in f.keys():
+                    classifier_bias = f.get_tensor(classifier_bias_key)
+                    model.classifier.weight.data = classifier_weight
+                    model.classifier.bias.data = classifier_bias
 
-                from huggingface_hub import hf_hub_download
-                from safetensors import safe_open
+                print(
+                    f"✓ Loaded model with {num_labels} labels using saved classifier weights"
+                )
 
-                # Check if adapter_model_name is a local path or HuggingFace model
-                if os.path.exists(adapter_model_name):
-                    # Local path
-                    adapter_model_path = os.path.join(
-                        adapter_model_name, "adapter_model.safetensors"
-                    )
-                    print(f"Loading from local path: {adapter_model_path}")
-                else:
-                    # HuggingFace Hub - download the safetensors file
-                    try:
-                        adapter_model_path = hf_hub_download(
-                            repo_id=adapter_model_name,
-                            filename="adapter_model.safetensors",
-                            cache_dir="./models/cache",
-                        )
-                        print(f"Downloaded from HuggingFace Hub: {adapter_model_name}")
-                    except Exception as hf_error:
-                        print(f"Failed to download from HuggingFace Hub: {hf_error}")
-                        # Fallback to local path if exists
-                        local_fallback = "./models/financial_adapter_*"
-                        import glob
-
-                        local_models = glob.glob(local_fallback)
-                        if local_models:
-                            fallback_path = max(local_models)  # Get the latest one
-                            adapter_model_path = os.path.join(
-                                fallback_path, "adapter_model.safetensors"
-                            )
-                            print(f"Using local fallback: {fallback_path}")
-                        else:
-                            raise RuntimeError(
-                                f"Cannot find adapter model locally or on HuggingFace Hub: {adapter_model_name}"
-                            )
-
-                with safe_open(adapter_model_path, framework="pt", device="cpu") as f:
-                    # Find classifier weights to determine number of labels
-                    classifier_key = None
-                    for key in f.keys():
-                        if "classifier" in key and "weight" in key:
-                            classifier_key = key
-                            break
-
-                    if classifier_key:
-                        classifier_weight = f.get_tensor(classifier_key)
-                        num_labels = classifier_weight.shape[0]
-
-                        # Update model config and resize classifier
-                        model.config.num_labels = num_labels
-                        import torch.nn as nn
-
-                        model.classifier = nn.Linear(
-                            model.classifier.in_features, num_labels
-                        )
-
-                        # Load the saved classifier weights
-                        classifier_bias_key = classifier_key.replace("weight", "bias")
-                        if classifier_bias_key in f.keys():
-                            classifier_bias = f.get_tensor(classifier_bias_key)
-                            model.classifier.weight.data = classifier_weight
-                            model.classifier.bias.data = classifier_bias
-
-                        print(
-                            f"✓ Loaded model with {num_labels} labels using saved classifier weights"
-                        )
-                    else:
-                        raise RuntimeError(
-                            "Could not find classifier weights in adapter model"
-                        )
-            else:
-                raise e
+        model = PeftModel.from_pretrained(model, adapter_model_name)
 
         config_model_path = hf_hub_download(
             repo_id=adapter_model_name,
