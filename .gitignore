@@ -180,6 +180,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-
 models/
 data/
