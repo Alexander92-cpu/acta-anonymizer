@@ -1,0 +1,77 @@
+# Model card template configuration
+model_card:
+  # Basic metadata
+  metadata:
+    language: ["ro"]
+    license: "apache-2.0"
+    base_model: "EvanD/xlm-roberta-base-romanian-ner-ronec"
+    
+  # Tags for different domains
+  tags:
+    common:
+      - "token-classification"
+      - "named-entity-recognition"
+      - "pii-detection"
+      - "romanian"
+      - "moldova"
+    general:
+      - "general-pii"
+      - "document-processing"
+    financial:
+      - "financial-pii"
+      - "banking"
+      - "fintech"
+    legal:
+      - "legal-pii"
+      - "law-documents"
+    medical:
+      - "medical-pii"
+      - "healthcare"
+
+  # Domain-specific training data descriptions
+  training_data:
+    general: "This model was trained on synthetic Moldovan PII data for general document anonymization."
+    financial: "This model was trained on synthetic Moldovan PII data for financial domain anonymization."
+    legal: "This model was trained on synthetic Moldovan PII data for legal document anonymization."
+    medical: "This model was trained on synthetic Moldovan PII data for medical document anonymization."
+
+  # Usage examples for different domains
+  usage_examples:
+    general:
+      predict: "Ion Popescu locuiește în București și lucrează la o companie."
+      anonymize: "Ion Popescu locuiește în București și lucrează la o companie."
+    financial:
+      predict: "Ion Popescu are un cont la Banca Transilvania cu IBAN RO49AAAA1B310075938400000."
+      anonymize: "Ion Popescu are un cont la Banca Transilvania cu IBAN RO49AAAA1B310075938400000."
+    legal:
+      predict: "Avocatul Ion Popescu din București reprezintă clientul în proces."
+      anonymize: "Avocatul Ion Popescu din București reprezintă clientul în proces."
+    medical:
+      predict: "Pacientul Ion Popescu, CNP 1234567890123, din București."
+      anonymize: "Pacientul Ion Popescu, CNP 1234567890123, din București."
+
+  # Additional sections
+  sections:
+    key_features:
+      - "Romanian language support"
+      - "GDPR compliance focused"
+      - "High accuracy PII detection"
+      - "Domain-specific fine-tuning"
+    
+    use_cases:
+      general:
+        - "General document anonymization"
+        - "Text processing pipelines"
+        - "Compliance data handling"
+      financial:
+        - "Banking document anonymization"
+        - "Financial report processing"
+        - "Compliance data handling"
+      legal:
+        - "Legal document anonymization"
+        - "Contract processing"
+        - "Court document handling"
+      medical:
+        - "Medical record anonymization"
+        - "Healthcare data processing"
+        - "Patient data protection"

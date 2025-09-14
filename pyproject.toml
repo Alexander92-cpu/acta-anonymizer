@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acta-anonymizer"
+version = "0.1.0"
+description = "BERT-based anonymization engine for Romanian text with Moldovan-specific PII detection and GDPR compliance"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Alexandru Mazurenco", email = "mazurencoal@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "transformers>=4.21.0",
+    "torch>=2.0.0",
+    "numpy>=1.21.0",
+    "peft>=0.5.0",
+    "datasets>=2.0.0",
+    "accelerate>=0.20.0",
+    "evaluate>=0.4.0",
+    "seqeval>=1.2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=1.0.0",
+    "isort>=5.10.0",
+    "tox>=4.0.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+build = [
+    "build>=0.10.0",
+    "twine>=4.0.0",
+    "tox>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Alexander92-cpu/acta-anonymizer"
+Repository = "https://github.com/Alexander92-cpu/acta-anonymizer"
+Issues = "https://github.com/Alexander92-cpu/acta-anonymizer/issues"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["acta_anonymizer*"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true

@@ -1,0 +1,11 @@
+model:
+  base_model: "EvanD/xlm-roberta-base-romanian-ner-ronec"
+  model_max_length: 512
+  
+domains:
+  financial:
+    lora:
+      r: 16
+      alpha: 32
+      dropout: 0.1
+      target_modules: ["query", "value", "key", "dense"]
