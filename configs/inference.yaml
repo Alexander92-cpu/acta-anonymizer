@@ -1,0 +1,11 @@
+inference:
+  base_model: "EvanD/xlm-roberta-base-romanian-ner-ronec"
+  adapter_model: "Finguys/acta-anonymizer-financial"
+  aggregation_strategy: "simple"
+  
+test_examples:
+  - "Numele meu este Ion Popescu și locuiesc în București."
+  - "Maria Georgescu lucrează la Universitatea din Cluj-Napoca."
+  - "Compania Microsoft a fost fondată de Bill Gates în Seattle."
+  - "Doctorul Andrei Mihai de la Spitalul Universitar din Iași m-a consultat ieri."
+  - "Am întâlnit-o pe Elena Constantinescu la restaurantul din Piața Victoriei din Timișoara."

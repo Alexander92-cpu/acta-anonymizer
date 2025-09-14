@@ -1,0 +1,34 @@
+publishing:
+  # HuggingFace Hub repository configuration
+  repository:
+    owner: "Finguys"
+    base_name: "acta-anonymizer"
+    private: true
+  
+  # Model publishing settings
+  settings:
+    commit_message: "Upload acta anonymizer adapter"
+    auto_update_metrics: true
+    create_model_card: true
+  
+  # Domain-specific configurations
+  domains:
+    financial:
+      repo_suffix: "-financial"  # Will result in "acta-anonymizer-financial"  
+      description: |
+        Acta Anonymizer Financial Adapter
+        
+        This model is a fine-tuned adapter for Romanian financial text anonymization. 
+        It's based on XLM-RoBERTa and trained specifically for detecting and anonymizing 
+        PII in Romanian financial documents from Moldova.
+        
+        Key features:
+        - Romanian language support
+        - Financial domain specialization
+        - GDPR compliance focused
+        - High accuracy PII detection
+        
+        Use cases:
+        - Banking document anonymization
+        - Financial report processing
+        - Compliance data handling
